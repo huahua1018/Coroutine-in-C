@@ -13,3 +13,4 @@ void btree_insert(struct b_node *tree,struct task_struct *task );
 void btree_extract_min(struct b_node *tree);
 void btree_split_child(struct b_node *x,int k,struct b_node *y);
 void btree_insert_nonfull(struct b_node*x,struct task_struct *task);
+void btree_pt(struct b_node*tree);

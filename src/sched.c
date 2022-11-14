@@ -128,17 +128,21 @@ static inline int default_put_prev_task(struct cr *cr, struct task_struct *prev)
 #define time_diff(start, end) \
     (end - start < 0 ? (1000000000 + end - start) : (end - start))
 
+//struct task_struct * test;
 static inline int bt_schedule(struct cr *cr, job_t func, void *args)
 {
     struct task_struct *new_task;
     static long exec_base = 0;
 
     new_task = calloc(1, sizeof(struct task_struct));
+    //test = new_task;
     if (!new_task)
         return -ENOMEM;
 
     new_task->exec_runtime = exec_base;
-    btree_insert(&cr->b_root, new_task);
+    
+    //btree_pt(&cr->b_root);
+    
     new_task->cr = cr;
     new_task->tfd = cr->size++;
     new_task->job = func;
@@ -146,6 +150,8 @@ static inline int bt_schedule(struct cr *cr, job_t func, void *args)
     new_task->context.label = NULL;
     new_task->context.wait_yield = 1;
     new_task->context.blocked = 1;
+    btree_insert(&cr->b_root, new_task);
+    printf("%ld", cr->b_root.test->exec_runtime);
     printf("ed");
     return new_task->tfd;
 }

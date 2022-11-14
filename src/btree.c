@@ -16,11 +16,8 @@ void bt_init(struct b_node *bt)
     } 
     printf("btree\n");
 }
-void btree_insert(struct b_node *tree,struct task_struct *task )
+void btree_insert(struct b_node *tree,struct task_struct *task)
 {
-    (*tree).test = task;
-    printf("%d", task->tfd);
-    return;
     struct b_node *r = tree;
     if(r->cnt==MX_NODE_CNT*2-1)
     {
@@ -36,7 +33,7 @@ void btree_insert(struct b_node *tree,struct task_struct *task )
     else
         btree_insert_nonfull(r,task);
 }
-void btree_extract_min(struct b_node *tree);
+void btree_extract_min(struct b_node *tree){}
 void btree_split_child(struct b_node *x,int k,struct b_node *y)
 {
     struct b_node *z=calloc(1,sizeof(struct b_node));
@@ -71,10 +68,10 @@ void btree_insert_nonfull(struct b_node*x,struct task_struct *task)
         
         x->task_arr[i + 1] = task;
         //printf("%d %d", i + 1, x->task_arr[1]->exec_runtime);
-        if(i > 2) {
-            printf("%d %d", i + 1, x->task_arr[3]->exec_runtime);
-            x->task_arr[3]->exec_runtime = rand();
-        }
+        // if(i > 2) {
+        //     printf("%d %d", i + 1, x->task_arr[3]->exec_runtime);
+        //     x->task_arr[3]->exec_runtime = rand();
+        // }
         x->cnt = x->cnt + 1;
     }
     else
@@ -89,5 +86,13 @@ void btree_insert_nonfull(struct b_node*x,struct task_struct *task)
                 i=i+1;
             btree_insert_nonfull(x->child[i],task);
         }
+    }
+}
+
+void btree_pt(struct b_node*tree)
+{
+    for(int i=1;i<=tree->cnt;i++)
+    {
+        printf("%d %d\n",i,tree->task_arr[i]->exec_runtime);
     }
 }
