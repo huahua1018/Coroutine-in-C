@@ -151,7 +151,6 @@ static inline int bt_schedule(struct cr *cr, job_t func, void *args)
     new_task->context.wait_yield = 1;
     new_task->context.blocked = 1;
     btree_insert(&cr->b_root, new_task);
-    printf("%ld", cr->b_root.test->exec_runtime);
     printf("ed");
     return new_task->tfd;
 }
