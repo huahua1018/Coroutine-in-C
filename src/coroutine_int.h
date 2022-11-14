@@ -3,6 +3,7 @@
 
 #include "rbtree.h"
 #include "context.h"
+#include "btree.h"
 
 typedef int (*job_t)(struct context *__context, void *args);
 
@@ -16,6 +17,9 @@ struct task_struct {
     job_t job;
     void *args;
     struct context context; /* defined at context.h */
+    
+    /* bt info*/
+    long exec_runtime;
 
     /* default info */
     struct {
@@ -23,7 +27,7 @@ struct task_struct {
         long sum_exec_runtime;
         long exec_start;
     };
-};
+    };
 
 #ifndef container_of
 #define container_of(ptr, type, member)                        \
@@ -50,6 +54,18 @@ void rq_init(struct rq *rq);
 int rq_enqueue(struct rq *rq, struct task_struct *task);
 struct task_struct *rq_dequeue(struct rq *rq);
 
+/*btree*/
+// #define MX_NODE_CNT 4
+// struct b_node {
+//     int cnt;
+//     int key[MX_NODE_CNT*2+1]; //cost time
+//     struct task_struct * task_arr[MX_NODE_CNT*2+1]; 
+//     struct b_node *child[MX_NODE_CNT*2+1];
+// };
+
+// void btree_insert(struct b_node *now,struct task_struct *task );
+
+
 /* main data structure */
 
 #define MAX_CR_TABLE_SIZE 10
@@ -63,6 +79,8 @@ struct cr {
     /* scheduler - chose by the flags */
     struct rq rq; /* FIFO */
     struct rb_root root; /* Default */
+
+    struct b_node b_root; /* SJF */
 
     /* sched operations */
     int (*schedule)(struct cr *cr, job_t func, void *args);
