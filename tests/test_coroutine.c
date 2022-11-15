@@ -30,16 +30,16 @@ int main(void)
 {
     int crfd, tfd[10];
 
-    crfd = coroutine_create(CR_SJF);
+    crfd = coroutine_create(CR_SEG);
     if (crfd < 0)
         return crfd;
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 3; i++) {
         tfd[i] = i;
         printf("[tfd %d] %d added, %d\n", coroutine_add(crfd, job, &tfd[i]), i,
                tfd[i]);
     }
-    printf("add end");
+    printf("add end\n");
     coroutine_start(crfd);
 
     coroutine_join(crfd);

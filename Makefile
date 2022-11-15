@@ -9,6 +9,7 @@ SRC+=src/sched.c
 SRC+=src/coroutine.c
 SRC+=src/rbtree.c
 SRC+=src/btree.c
+SRC+=src/seg_tree.c
 
 OBJ=$(SRC:.c=.o)
 

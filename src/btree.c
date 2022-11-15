@@ -28,12 +28,32 @@ void btree_insert(struct b_node *tree,struct task_struct *task)
         tree->child[1]=r;
         btree_split_child(s,1,r);
         btree_insert_nonfull(s,task);
-
     }
     else
         btree_insert_nonfull(r,task);
 }
-void btree_extract_min(struct b_node *tree){}
+struct b_node* btree_extract_min(struct b_node *tree)
+{
+    if(tree->child[1]->cnt>=1)
+    {
+        if(tree->child[1]->cnt>=MX_NODE_CNT)
+            return btree_extract_min(tree->child[1]);
+        else
+        {
+            if(tree->child[2]->cnt>=MX_NODE_CNT)
+            {
+                tree->child[1]->task_arr[MX_NODE_CNT]=tree->task_arr[1];
+                tree->task_arr[1]= tree->child[2]->task_arr[1];
+                // tree->child[2]
+                // for(int i=1;i<;i++)
+                // {
+                //     tree->child[2]->task_arr[1]
+                // }
+                return btree_extract_min(tree->child[1]);
+            }
+        }
+    }
+}
 void btree_split_child(struct b_node *x,int k,struct b_node *y)
 {
     struct b_node *z=calloc(1,sizeof(struct b_node));

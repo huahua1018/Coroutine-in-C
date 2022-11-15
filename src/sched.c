@@ -4,6 +4,8 @@
 #include <errno.h>
 #include <time.h>
 #include <sched.h>
+
+#include "seg_tree.h"
 #include "btree.h"
 #include "rbtree.h"
 #include "context.h"
@@ -125,14 +127,15 @@ static inline int default_put_prev_task(struct cr *cr, struct task_struct *prev)
     return 0;
 }
 
-#define time_diff(start, end) \
-    (end - start < 0 ? (1000000000 + end - start) : (end - start))
+// #define time_diff(start, end) \
+//     (end - start < 0 ? (1000000000 + end - start) : (end - start))
 
 //struct task_struct * test;
 static inline int bt_schedule(struct cr *cr, job_t func, void *args)
 {
     struct task_struct *new_task;
     static long exec_base = 0;
+
 
     new_task = calloc(1, sizeof(struct task_struct));
     //test = new_task;
@@ -157,8 +160,6 @@ static inline int bt_schedule(struct cr *cr, job_t func, void *args)
 
 static inline struct task_struct *bt_pick_next_task(struct cr *cr)
 {
-    printf("??");
-    return NULL;
     struct rb_node *node = rbtree_min(&cr->root);
     struct task_struct *task = container_of(node, struct task_struct, node);
     struct timespec start;
@@ -174,7 +175,59 @@ static inline struct task_struct *bt_pick_next_task(struct cr *cr)
 
 static inline int bt_put_prev_task(struct cr *cr, struct task_struct *prev)
 {
-    printf("??");
+    struct timespec end;
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    prev->sum_exec_runtime += time_diff(prev->exec_start, end.tv_nsec);
+    rbtree_insert(&cr->root, &prev->node, rb_cmp_insert);
+
+    return 0;
+}
+
+static inline int seg_schedule(struct cr *cr, job_t func, void *args)
+{
+    struct task_struct *new_task;
+    static long exec_base = 0;
+
+
+    new_task = calloc(1, sizeof(struct task_struct));
+    //test = new_task;
+    if (!new_task)
+        return -ENOMEM;
+
+    new_task->exec_runtime = exec_base;
+    
+    //btree_pt(&cr->b_root);
+    
+    new_task->cr = cr;
+    new_task->tfd = cr->size++;
+    new_task->job = func;
+    new_task->args = args;
+    new_task->context.label = NULL;
+    new_task->context.wait_yield = 1;
+    new_task->context.blocked = 1;
+    seg_insert(&cr->seg_root, new_task);
+    return new_task->tfd;
+}
+
+static inline struct task_struct *seg_pick_next_task(struct cr *cr)
+{
+    // struct rb_node *node = rbtree_min(&cr->root);
+    // struct task_struct *task = container_of(node, struct task_struct, node);
+    struct task_struct *task=seg_extract_min(&cr->seg_root);
+    struct timespec start;
+
+    if (task == NULL)
+        return NULL;
+    //__rbtree_delete(&cr->root, node);
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    task->exec_start = start.tv_nsec;
+    printf("%d",task->exec_runtime);
+    return task;
+}
+
+static inline int seg_put_prev_task(struct cr *cr, struct task_struct *prev)
+{
     return -1;
     struct timespec end;
 
@@ -205,6 +258,12 @@ void sched_init(struct cr *cr)
         cr->schedule = bt_schedule;
         cr->pick_next_task = bt_pick_next_task;
         cr->put_prev_task = bt_put_prev_task;
+        return;
+     case CR_SEG:
+        seg_init(&cr->seg_root);
+        cr->schedule = seg_schedule;
+        cr->pick_next_task = seg_pick_next_task;
+        cr->put_prev_task = seg_put_prev_task;
     }
 
 }
