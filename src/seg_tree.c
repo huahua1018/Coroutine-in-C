@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "coroutine_int.h"
+#include <errno.h>
 //#include "seg_tree.h"
 #include <stdio.h>
 
@@ -26,7 +27,7 @@ void seg_build(struct seg_node *tree,int idx,int l,int r)
     (*(tree+idx)).having=0;
 }
 
-void seg_update(struct seg_node *tree,int idx,int l,int r,int obj,int val,int mode)//mode=1:insert,mode=0:del
+void seg_update(struct seg_node *tree,int idx,int l,int r,int obj,int val,int mode)//mode=1:modify,mode=0:delete
 {
     if(l==r)
     {
@@ -39,7 +40,7 @@ void seg_update(struct seg_node *tree,int idx,int l,int r,int obj,int val,int mo
     if(obj<=mid)
         seg_update(tree,cl(idx),l,mid,obj,val,mode);
     else
-        seg_update(tree,cl(idx),l,mid,obj,val,mode);
+        seg_update(tree,cr(idx),mid+1,r,obj,val,mode);
     (*(tree+idx)).having=(*(tree+cl(idx))).having|(*(tree+cr(idx))).having;
     if((*(tree+idx)).having)
     {
@@ -67,12 +68,15 @@ void seg_update(struct seg_node *tree,int idx,int l,int r,int obj,int val,int mo
             (*(tree+idx)).pos=(*(tree+cr(idx))).pos;
         }
     }
+    else
+        (*(tree+idx)).exec_time=INF;
 }
 
 int seg_insert(struct seg *seg,struct task_struct *task)
 {
     if(((seg->head)+1)%MAX_SEG_SIZE==seg->tail)
-        return -1;
+        return -EAGAIN;
+    
     seg->seg_task_arr[seg->head]=task;
     seg_update(seg->seg_tree,1,0,MAX_SEG_SIZE-1,seg->head,task->exec_runtime,1);
     seg->head=((seg->head)+1)%MAX_SEG_SIZE;
@@ -85,9 +89,11 @@ struct task_struct* seg_extract_min(struct seg*seg)
         return NULL;
     int idx=seg->seg_tree[1].pos;
     struct task_struct *res=seg->seg_task_arr[idx];
-    seg->seg_task_arr[idx]=seg->seg_task_arr[seg->tail];
-    seg_update(seg->seg_tree,1,0,MAX_SEG_SIZE-1,idx,seg->seg_task_arr[idx]->exec_runtime,1);
+    //printf("min %d\n",res->exec_runtime);
+    seg_update(seg->seg_tree,1,0,MAX_SEG_SIZE-1,idx,seg->seg_task_arr[seg->tail]->exec_runtime,1);
     seg_update(seg->seg_tree,1,0,MAX_SEG_SIZE-1,seg->tail,INF,0);
+    //printf("idx:%d idx_key:%d tail:%d tail_key:%d\n",idx,seg->seg_task_arr[idx]->exec_runtime,seg->tail,seg->seg_task_arr[seg->tail]->exec_runtime);
+    seg->seg_task_arr[idx]=seg->seg_task_arr[seg->tail];
     seg->tail=((seg->tail)+1)%MAX_SEG_SIZE;
     return res;
 }

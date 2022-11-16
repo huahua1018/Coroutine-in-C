@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "../coroutine.h"
+#include <unistd.h>
 
 COROUTINE_DEFINE(job)
 {
@@ -26,20 +27,49 @@ COROUTINE_DEFINE(job)
     cr_end();
 }
 
+COROUTINE_DEFINE(job1) {
+    VAR_DEFINE2(int, i, j);
+    VAR_DEFINE3(double, k, l, m);
+    ARRAY_DEFINE(int, arr, 20);
+    cr_begin();
+    cr_set(i, 1);
+    cr_set(j, 2);
+    cr_set(k, 2.2);
+    
+    cr_set(arr, 2, 4 /* index */);
+    printf("[@ job %d] %d %d\n", *(int *)args, cr_dref(i), cr_dref(j));
+
+    sleep(3);
+
+    cr_yield();
+
+    cr_set(i, cr_dref(i) + 1);
+    if (cr_dref(arr, 4 /* index */) == 2)
+        printf("array success\n");
+    printf("[# job %d] %d %d\n", *(int *)args, cr_dref(i), cr_dref(j));
+    if (cr_dref(k) == 2.2)
+        printf("variable success\n");
+
+    cr_end();
+}
 int main(void)
 {
-    int crfd, tfd[10];
+    int crfd, tfd[1000];
 
     crfd = coroutine_create(CR_SEG);
     if (crfd < 0)
         return crfd;
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 10; i++) {
         tfd[i] = i;
         printf("[tfd %d] %d added, %d\n", coroutine_add(crfd, job, &tfd[i]), i,
                tfd[i]);
     }
-    printf("add end\n");
+    for (int i = 10; i < 13; i++){
+        tfd[i] = i;
+        printf("[tfd %d] %d added, %d\n", coroutine_add(crfd, job1, &tfd[i]), i,
+               tfd[i]);
+    }
     coroutine_start(crfd);
 
     coroutine_join(crfd);

@@ -68,8 +68,8 @@ struct task_struct *rq_dequeue(struct rq *rq);
 
 #define MAX_SEG_SIZE 20
 #define INF 0x3f3f3f3f3f3f
-#define cl(x)(x>>1)
-#define cr(x)(x>>1|1)
+#define cl(x)(x<<1)
+#define cr(x)(x<<1|1)
 struct seg_node {
     long long exec_time;
     int pos;

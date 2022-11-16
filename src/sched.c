@@ -11,7 +11,7 @@
 #include "context.h"
 #include "coroutine.h"
 #include "coroutine_int.h"
-#include<stdio.h>
+#include <stdio.h>
 
 /* FIFO scheduler */
 
@@ -187,8 +187,7 @@ static inline int bt_put_prev_task(struct cr *cr, struct task_struct *prev)
 static inline int seg_schedule(struct cr *cr, job_t func, void *args)
 {
     struct task_struct *new_task;
-    static long exec_base = 0;
-
+    long exec_base = 0;
 
     new_task = calloc(1, sizeof(struct task_struct));
     //test = new_task;
@@ -206,7 +205,13 @@ static inline int seg_schedule(struct cr *cr, job_t func, void *args)
     new_task->context.label = NULL;
     new_task->context.wait_yield = 1;
     new_task->context.blocked = 1;
-    seg_insert(&cr->seg_root, new_task);
+
+    //printf("%d %d\n",new_task->tfd,new_task->exec_runtime);
+    if(seg_insert(&cr->seg_root, new_task)<0)
+    {
+        free(new_task);
+        return -ENOMEM;
+    }
     return new_task->tfd;
 }
 
@@ -219,22 +224,25 @@ static inline struct task_struct *seg_pick_next_task(struct cr *cr)
 
     if (task == NULL)
         return NULL;
+    printf("exec_runtime=%d\n",task->exec_runtime);
     //__rbtree_delete(&cr->root, node);
     clock_gettime(CLOCK_MONOTONIC, &start);
     task->exec_start = start.tv_nsec;
-    printf("%d",task->exec_runtime);
+    //printf("seg_pick_next_task\n");
     return task;
 }
 
 static inline int seg_put_prev_task(struct cr *cr, struct task_struct *prev)
 {
-    return -1;
     struct timespec end;
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    prev->sum_exec_runtime += time_diff(prev->exec_start, end.tv_nsec);
-    rbtree_insert(&cr->root, &prev->node, rb_cmp_insert);
+    //printf("pre seg_put_prev_task\n");
 
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    prev->exec_runtime += time_diff(prev->exec_start, end.tv_nsec);
+
+    seg_insert(&cr->seg_root, prev);
+    //printf("seg_put_prev_task\n");
     return 0;
 }
 
