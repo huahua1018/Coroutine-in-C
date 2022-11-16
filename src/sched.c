@@ -224,7 +224,7 @@ static inline struct task_struct *seg_pick_next_task(struct cr *cr)
 
     if (task == NULL)
         return NULL;
-    printf("exec_runtime=%d\n",task->exec_runtime);
+    printf("id = %d exec_runtime = %d\n",task->tfd,task->exec_runtime);
     //__rbtree_delete(&cr->root, node);
     clock_gettime(CLOCK_MONOTONIC, &start);
     task->exec_start = start.tv_nsec;
@@ -239,7 +239,7 @@ static inline int seg_put_prev_task(struct cr *cr, struct task_struct *prev)
     //printf("pre seg_put_prev_task\n");
 
     clock_gettime(CLOCK_MONOTONIC, &end);
-    prev->exec_runtime += time_diff(prev->exec_start, end.tv_nsec);
+    prev->exec_runtime = time_diff(prev->exec_start, end.tv_nsec);
 
     seg_insert(&cr->seg_root, prev);
     //printf("seg_put_prev_task\n");

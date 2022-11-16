@@ -13,8 +13,8 @@ SRC+=src/seg_tree.c
 
 OBJ=$(SRC:.c=.o)
 
-src/%.o: %.c
-	$(CC) -c $< $(CFLAG)
+src/%.o: src/%.c
+	$(CC) -c $< $(CFLAG) -o $@
 
 
 all: static
