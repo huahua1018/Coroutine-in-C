@@ -66,23 +66,24 @@ struct task_struct *rq_dequeue(struct rq *rq);
 
 // void btree_insert(struct b_node *now,struct task_struct *task );
 
+/*segment tree*/
 #define MAX_SEG_SIZE 20
-#define INF 0x3f3f3f3f3f3f
+#define INF 0x3f3f3f3f3f3f3f3f
 #define cl(x)(x<<1)
 #define cr(x)(x<<1|1)
 struct seg_node {
     long long exec_time;
     int pos;
-    int having;
+    int having; //是否有task
 };
 struct seg{
-    int head;
-    int tail;
+    int head;   //seg_task_arr的頭
+    int tail;   //seg_task_arr的尾
     struct seg_node seg_tree[4*MAX_SEG_SIZE];
-    struct task_struct *seg_task_arr[MAX_SEG_SIZE];
+    struct task_struct *seg_task_arr[MAX_SEG_SIZE]; 
 };
 void seg_init(struct seg *seg);
-void seg_update(struct seg_node *tree,int idx,int l,int r,int obj,int val,int mode);
+void seg_update(struct seg_node *tree,int idx,int l,int r,int obj,long long val,int mode);
 void seg_build(struct seg_node *tree,int idx,int l,int r);
 int seg_insert(struct seg *seg,struct task_struct *task);
 struct task_struct* seg_extract_min(struct seg*seg);

@@ -37,7 +37,7 @@ COROUTINE_DEFINE(job1) {
     cr_set(k, 2.2);
     
     cr_set(arr, 2, 4 /* index */);
-    printf("[@ job %d] %d %d\n", *(int *)args, cr_dref(i), cr_dref(j));
+    printf("[@ job1 %d] %d %d\n", *(int *)args, cr_dref(i), cr_dref(j));
 
     sleep(3);
 
@@ -46,7 +46,7 @@ COROUTINE_DEFINE(job1) {
     cr_set(i, cr_dref(i) + 1);
     if (cr_dref(arr, 4 /* index */) == 2)
         printf("array success\n");
-    printf("[# job %d] %d %d\n", *(int *)args, cr_dref(i), cr_dref(j));
+    printf("[# job1 %d] %d %d\n", *(int *)args, cr_dref(i), cr_dref(j));
     if (cr_dref(k) == 2.2)
         printf("variable success\n");
 

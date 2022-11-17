@@ -5,7 +5,6 @@
 #include <time.h>
 #include <sched.h>
 
-#include "seg_tree.h"
 #include "btree.h"
 #include "rbtree.h"
 #include "context.h"
@@ -127,7 +126,7 @@ static inline int default_put_prev_task(struct cr *cr, struct task_struct *prev)
     return 0;
 }
 
-// #define time_diff(start, end) \
+// #define time_diff(start, end) 
 //     (end - start < 0 ? (1000000000 + end - start) : (end - start))
 
 //struct task_struct * test;
@@ -190,13 +189,11 @@ static inline int seg_schedule(struct cr *cr, job_t func, void *args)
     long exec_base = 0;
 
     new_task = calloc(1, sizeof(struct task_struct));
-    //test = new_task;
+
     if (!new_task)
         return -ENOMEM;
 
     new_task->exec_runtime = exec_base;
-    
-    //btree_pt(&cr->b_root);
     
     new_task->cr = cr;
     new_task->tfd = cr->size++;
@@ -206,8 +203,7 @@ static inline int seg_schedule(struct cr *cr, job_t func, void *args)
     new_task->context.wait_yield = 1;
     new_task->context.blocked = 1;
 
-    //printf("%d %d\n",new_task->tfd,new_task->exec_runtime);
-    if(seg_insert(&cr->seg_root, new_task)<0)
+    if(seg_insert(&cr->seg_root, new_task)<0)//若滿了
     {
         free(new_task);
         return -ENOMEM;
@@ -217,18 +213,15 @@ static inline int seg_schedule(struct cr *cr, job_t func, void *args)
 
 static inline struct task_struct *seg_pick_next_task(struct cr *cr)
 {
-    // struct rb_node *node = rbtree_min(&cr->root);
-    // struct task_struct *task = container_of(node, struct task_struct, node);
-    struct task_struct *task=seg_extract_min(&cr->seg_root);
+    struct task_struct *task=seg_extract_min(&cr->seg_root);//取出花費時間最少的task
     struct timespec start;
 
     if (task == NULL)
         return NULL;
-    printf("id = %d exec_runtime = %d\n",task->tfd,task->exec_runtime);
-    //__rbtree_delete(&cr->root, node);
+
+    printf("id = %d exec_runtime = %ld\n",task->tfd,task->exec_runtime);
     clock_gettime(CLOCK_MONOTONIC, &start);
     task->exec_start = start.tv_nsec;
-    //printf("seg_pick_next_task\n");
     return task;
 }
 
@@ -236,13 +229,10 @@ static inline int seg_put_prev_task(struct cr *cr, struct task_struct *prev)
 {
     struct timespec end;
 
-    //printf("pre seg_put_prev_task\n");
-
     clock_gettime(CLOCK_MONOTONIC, &end);
-    prev->exec_runtime = time_diff(prev->exec_start, end.tv_nsec);
-
+    prev->exec_runtime = time_diff(prev->exec_start, end.tv_nsec);//更新花費時間
+    //printf("??id = %d exec_runtime = %ld\n",prev->tfd,prev->exec_runtime);
     seg_insert(&cr->seg_root, prev);
-    //printf("seg_put_prev_task\n");
     return 0;
 }
 
